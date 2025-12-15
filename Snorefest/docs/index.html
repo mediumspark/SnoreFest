@@ -80,51 +80,78 @@
           <p class="hint">Set your break length and keep an eye on the clock.</p>
         </section>
 
-        <section class="card" id="tasks-card">
-          <h2>Task Log</h2>
-          <form id="task-form" autocomplete="off">
-            <div class="field-group">
-              <label for="task-name">Task name</label>
-              <input
-                type="text"
-                id="task-name"
-                maxlength="120"
-                placeholder="Example: Prolific study - memory game"
-              />
+        <section class="card" id="gigs-card">
+          <h2>Gig Log</h2>
+
+          <div class="gig-summary">
+            <div>
+              <div class="gig-summary-label">This month</div>
+              <div class="gig-summary-value" id="gig-month-summary">
+                $0.00 · 0 hrs · $0.00/hr
+              </div>
             </div>
+            <div>
+              <div class="gig-summary-label">This year</div>
+              <div class="gig-summary-value" id="gig-year-summary">
+                $0.00 · 0 hrs · $0.00/hr
+              </div>
+            </div>
+          </div>
+
+          <form id="gig-form" autocomplete="off">
             <div class="field-row">
               <div class="field-group">
-                <label for="task-earnings">$ earned</label>
+                <label for="gig-platform">Platform</label>
+                <select id="gig-platform">
+                  <option value="">Select platform</option>
+                  <option>Uber</option>
+                  <option>DoorDash</option>
+                  <option>Instacart</option>
+                  <option>Prolific</option>
+                  <option>MTurk</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="gig-date">Date</label>
+                <input type="date" id="gig-date" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field-group">
+                <label for="gig-earnings">Gross $</label>
                 <input
                   type="number"
-                  id="task-earnings"
+                  id="gig-earnings"
                   min="0"
                   step="0.01"
-                  placeholder="1.50"
+                  placeholder="25.00"
                 />
               </div>
               <div class="field-group">
-                <label for="task-minutes">Minutes</label>
+                <label for="gig-minutes">Minutes worked</label>
                 <input
                   type="number"
-                  id="task-minutes"
+                  id="gig-minutes"
                   min="1"
                   step="1"
-                  placeholder="10"
+                  placeholder="60"
                 />
               </div>
             </div>
+
             <button type="submit" class="primary-btn full-width">
-              Add task
+              Add gig
             </button>
           </form>
 
           <div class="task-summary">
-            <span id="task-count">0 tasks</span>
-            <span id="task-total-earned">$0.00</span>
+            <span id="gig-count">0 gigs</span>
+            <span id="gig-total-earned">$0.00</span>
           </div>
 
-          <ul id="task-list" class="task-list"></ul>
+          <ul id="gig-list" class="task-list"></ul>
         </section>
 
         <section class="card" id="referral-card">

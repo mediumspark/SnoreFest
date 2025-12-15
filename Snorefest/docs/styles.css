@@ -110,6 +110,24 @@ input:focus {
   background: rgba(15, 23, 42, 0.95);
 }
 
+select {
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(15, 23, 42, 0.8);
+  color: var(--text-main);
+  padding: 8px 10px;
+  font-size: 0.9rem;
+  outline: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent-soft);
+  background: rgba(15, 23, 42, 0.95);
+}
+
 .input-row {
   display: flex;
   align-items: center;
@@ -224,6 +242,27 @@ button:disabled {
   margin: 10px 0 8px;
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+.gig-summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(148, 163, 184, 0.25);
+  font-size: 0.8rem;
+}
+
+.gig-summary-label {
+  color: var(--text-muted);
+  margin-bottom: 2px;
+}
+
+.gig-summary-value {
+  font-variant-numeric: tabular-nums;
 }
 
 .task-list {

@@ -119,47 +119,61 @@
   syncInitial();
 })();
 
-// Task log with localStorage
-(function setupTaskLog() {
-  const form = document.getElementById("task-form");
-  const nameEl = document.getElementById("task-name");
-  const earningsEl = document.getElementById("task-earnings");
-  const minutesEl = document.getElementById("task-minutes");
-  const listEl = document.getElementById("task-list");
-  const countEl = document.getElementById("task-count");
-  const totalEarnedEl = document.getElementById("task-total-earned");
+// Gig log with localStorage and month/year summaries
+(function setupGigLog() {
+  const form = document.getElementById("gig-form");
+  const platformEl = document.getElementById("gig-platform");
+  const dateEl = document.getElementById("gig-date");
+  const earningsEl = document.getElementById("gig-earnings");
+  const minutesEl = document.getElementById("gig-minutes");
+  const listEl = document.getElementById("gig-list");
+  const countEl = document.getElementById("gig-count");
+  const totalEarnedEl = document.getElementById("gig-total-earned");
+  const monthSummaryEl = document.getElementById("gig-month-summary");
+  const yearSummaryEl = document.getElementById("gig-year-summary");
 
   if (
     !form ||
-    !nameEl ||
+    !platformEl ||
+    !dateEl ||
     !earningsEl ||
     !minutesEl ||
     !listEl ||
     !countEl ||
-    !totalEarnedEl
+    !totalEarnedEl ||
+    !monthSummaryEl ||
+    !yearSummaryEl
   ) {
     return;
   }
 
-  const STORAGE_KEY = "microtask-buddy-tasks-v1";
-  let tasks = [];
+  const STORAGE_KEY = "snorefest-gigs-v1";
+  let gigs = [];
 
-  function loadTasks() {
+  function todayISO() {
+    const d = new Date();
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+  }
+
+  function loadGigs() {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-        tasks = parsed;
+        gigs = parsed;
       }
     } catch {
       // ignore parse errors
     }
   }
 
-  function saveTasks() {
+  function saveGigs() {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(gigs));
     } catch {
       // ignore quota errors
     }
@@ -171,41 +185,104 @@
     return `$${v.toFixed(2)}`;
   }
 
-  function updateSummary() {
-    const count = tasks.length;
-    const total = tasks.reduce((sum, t) => sum + (t.earnings || 0), 0);
-    countEl.textContent = `${count} task${count === 1 ? "" : "s"}`;
+  function formatHours(minutes) {
+    const hrs = (minutes || 0) / 60;
+    if (!isFinite(hrs) || hrs <= 0) return "0 hrs";
+    return `${hrs.toFixed(1)} hrs`;
+  }
+
+  function calcRate(totalEarned, totalMinutes) {
+    const hrs = totalMinutes / 60;
+    if (!hrs || !isFinite(hrs)) return "$0.00/hr";
+    const rate = totalEarned / hrs;
+    if (!isFinite(rate) || rate <= 0) return "$0.00/hr";
+    return `$${rate.toFixed(2)}/hr`;
+  }
+
+  function updateSummaries() {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth(); // 0-based
+
+    let monthMinutes = 0;
+    let monthEarned = 0;
+    let yearMinutes = 0;
+    let yearEarned = 0;
+
+    gigs.forEach((gig) => {
+      const d = gig.date ? new Date(gig.date) : null;
+      const mins = gig.minutes || 0;
+      const earn = gig.earnings || 0;
+
+      if (!d || Number.isNaN(d.getTime())) {
+        return;
+      }
+
+      if (d.getFullYear() === year) {
+        yearMinutes += mins;
+        yearEarned += earn;
+
+        if (d.getMonth() === month) {
+          monthMinutes += mins;
+          monthEarned += earn;
+        }
+      }
+    });
+
+    monthSummaryEl.textContent = `${formatCurrency(
+      monthEarned
+    )} · ${formatHours(monthMinutes)} · ${calcRate(
+      monthEarned,
+      monthMinutes
+    )}`;
+
+    yearSummaryEl.textContent = `${formatCurrency(
+      yearEarned
+    )} · ${formatHours(yearMinutes)} · ${calcRate(
+      yearEarned,
+      yearMinutes
+    )}`;
+  }
+
+  function updateTotals() {
+    const count = gigs.length;
+    const total = gigs.reduce((sum, g) => sum + (g.earnings || 0), 0);
+    countEl.textContent = `${count} gig${count === 1 ? "" : "s"}`;
     totalEarnedEl.textContent = formatCurrency(total);
   }
 
   function render() {
     listEl.innerHTML = "";
-    tasks.forEach((task) => {
+    gigs.forEach((gig) => {
       const li = document.createElement("li");
       li.className = "task-item";
-      li.dataset.id = task.id;
+      li.dataset.id = gig.id;
 
       const main = document.createElement("div");
       main.className = "task-main";
 
       const nameSpan = document.createElement("div");
       nameSpan.className = "task-name";
-      nameSpan.textContent = task.name || "(untitled task)";
+      const platform = gig.platform || "Other";
+      const dateLabel = gig.date || "";
+      nameSpan.textContent = dateLabel
+        ? `${platform} · ${dateLabel}`
+        : platform;
 
       const meta = document.createElement("div");
       meta.className = "task-meta";
 
       const earnSpan = document.createElement("span");
       earnSpan.className = "task-earnings";
-      earnSpan.textContent = formatCurrency(task.earnings || 0);
+      earnSpan.textContent = formatCurrency(gig.earnings || 0);
 
       const minsSpan = document.createElement("span");
-      minsSpan.textContent = `${task.minutes || 0} min`;
+      minsSpan.textContent = `${gig.minutes || 0} min`;
 
       const rateSpan = document.createElement("span");
-      if (task.minutes && task.earnings) {
-        const hrs = task.minutes / 60;
-        const rate = task.earnings / hrs;
+      if (gig.minutes && gig.earnings) {
+        const hrs = gig.minutes / 60;
+        const rate = gig.earnings / hrs;
         if (isFinite(rate) && rate > 0) {
           rateSpan.textContent = `~$${rate.toFixed(2)}/hr`;
         }
@@ -221,14 +298,15 @@
       const removeBtn = document.createElement("button");
       removeBtn.className = "task-remove";
       removeBtn.type = "button";
-      removeBtn.setAttribute("aria-label", "Remove task");
+      removeBtn.setAttribute("aria-label", "Remove gig");
       removeBtn.textContent = "×";
 
       removeBtn.addEventListener("click", () => {
-        tasks = tasks.filter((t) => t.id !== task.id);
-        saveTasks();
+        gigs = gigs.filter((g) => g.id !== gig.id);
+        saveGigs();
         render();
-        updateSummary();
+        updateTotals();
+        updateSummaries();
       });
 
       li.appendChild(main);
@@ -236,36 +314,41 @@
       listEl.appendChild(li);
     });
 
-    updateSummary();
+    updateTotals();
+    updateSummaries();
   }
 
   function handleSubmit(event) {
     event.preventDefault();
-    const name = nameEl.value.trim();
+    const platform = platformEl.value.trim();
+    const date = dateEl.value || todayISO();
     const earnings = parseFloat(earningsEl.value || "0");
     const minutes = parseInt(minutesEl.value || "0", 10);
 
-    if (!name && earnings <= 0 && minutes <= 0) {
+    if (!platform && earnings <= 0 && minutes <= 0) {
       return;
     }
 
-    const task = {
+    const gig = {
       id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      name: name || "",
+      platform: platform || "Other",
+      date,
       earnings: isFinite(earnings) && earnings > 0 ? earnings : 0,
       minutes: isFinite(minutes) && minutes > 0 ? minutes : 0,
     };
 
-    tasks.unshift(task);
-    saveTasks();
+    gigs.unshift(gig);
+    saveGigs();
     render();
 
     form.reset();
-    nameEl.focus();
+    dateEl.value = todayISO();
+    platformEl.focus();
   }
 
-  loadTasks();
+  loadGigs();
   render();
+  dateEl.value = todayISO();
   form.addEventListener("submit", handleSubmit);
 })();
 
