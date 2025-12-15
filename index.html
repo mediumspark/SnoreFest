@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Snore : Gig Tracker</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="app-header">
+        <h1>Snore : Gig Tracker</h1>
+        <p class="tagline">Track earnings, breaks, and tasks while you grind.</p>
+      </header>
+
+      <nav class="tab-nav">
+        <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+        <button class="tab-btn" data-tab="calculator">Rate Calculator</button>
+        <button class="tab-btn" data-tab="timer">Break Timer</button>
+      </nav>
+
+      <main id="dashboard-page" class="tab-page active">
+        <div class="grid">
+        <section class="card" id="rate-comparison-card">
+          <h2>Your Rate vs. Industry Average</h2>
+          <div id="overall-rate-display" class="overall-rate-display">
+            <div class="rate-value" id="overall-rate-value">—</div>
+            <div class="rate-comparison-badge" id="rate-comparison-badge" style="display: none;">
+              <span id="comparison-badge-text"></span>
+            </div>
+          </div>
+          <p class="hint" id="rate-comparison-hint">Add gigs to see how your rate compares</p>
+        </section>
+
+        <section class="card" id="gigs-card">
+          <h2>Gig Log</h2>
+
+          <div class="gig-summary">
+            <div>
+              <div class="gig-summary-label">This month</div>
+              <div class="gig-summary-value" id="gig-month-summary">
+                $0.00 · 0 hrs · $0.00/hr
+              </div>
+            </div>
+            <div>
+              <div class="gig-summary-label">This year</div>
+              <div class="gig-summary-value" id="gig-year-summary">
+                $0.00 · 0 hrs · $0.00/hr
+              </div>
+            </div>
+          </div>
+
+          <form id="gig-form" autocomplete="off">
+            <div class="field-row">
+              <div class="field-group">
+                <label for="gig-platform">Platform</label>
+                <select id="gig-platform">
+                  <option value="">Select platform</option>
+                  <option>Uber</option>
+                  <option>DoorDash</option>
+                  <option>Instacart</option>
+                  <option>Prolific</option>
+                  <option>MTurk</option>
+                </select>
+              </div>
+              <div class="field-group">
+                <label for="gig-date">Date</label>
+                <input type="date" id="gig-date" />
+              </div>
+            </div>
+
+            <div class="field-row">
+              <div class="field-group">
+                <label for="gig-earnings">Gross $</label>
+                <input
+                  type="number"
+                  id="gig-earnings"
+                  min="0"
+                  step="0.01"
+                  placeholder="25.00"
+                />
+              </div>
+              <div class="field-group">
+                <label for="gig-minutes">Minutes worked</label>
+                <input
+                  type="number"
+                  id="gig-minutes"
+                  min="1"
+                  step="1"
+                  placeholder="60"
+                />
+              </div>
+            </div>
+
+            <button type="submit" class="primary-btn full-width">
+              Add gig
+            </button>
+          </form>
+
+          <div class="task-summary">
+            <span id="gig-count">0 gigs</span>
+            <span id="gig-total-earned">$0.00</span>
+          </div>
+
+          <div class="export-buttons">
+            <button id="export-csv-btn" class="primary-btn">Export CSV</button>
+            <button id="export-json-btn" class="primary-btn">Export JSON</button>
+          </div>
+
+          <ul id="gig-list" class="task-list"></ul>
+        </section>
+
+        <section class="card" id="referral-card">
+          <h2>Boost Your Earnings</h2>
+          <p class="hint">
+            Add your favorite sites and referral links here so they’re always
+            one click away.
+          </p>
+          <ul class="link-list">
+            <li>
+              <a href="#" target="_blank" rel="noopener noreferrer"
+                >Your top survey site (add link)</a
+              >
+            </li>
+            <li>
+              <a href="#" target="_blank" rel="noopener noreferrer"
+                >Backup site when things are slow (add link)</a
+              >
+            </li>
+            <li class="muted">
+              Space for future ad unit or banner if you decide to monetize.
+            </li>
+          </ul>
+        </section>
+        </div>
+      </main>
+
+      <main id="calculator-page" class="tab-page">
+        <div class="rate-ticker-wrapper">
+          <div class="rate-ticker-header">
+            <div class="rate-ticker-label" id="rate-ticker-label">Industry Average Rates (National)</div>
+            <button id="location-toggle-btn" class="location-btn" title="Enable location for local metro averages">
+              📍 Use Location
+            </button>
+          </div>
+          <div class="rate-ticker-container">
+            <div class="rate-ticker">
+              <div class="rate-ticker-content" id="rate-ticker-content"></div>
+            </div>
+          </div>
+        </div>
+        <div class="grid">
+          <section class="card" id="earnings-card">
+            <h2>Earnings & Rate Calculator</h2>
+            <div class="field-group">
+              <label for="amount-earned">Amount earned</label>
+              <div class="input-row">
+                <span class="prefix">$</span>
+                <input
+                  type="number"
+                  id="amount-earned"
+                  min="0"
+                  step="0.01"
+                  placeholder="5.00"
+                />
+              </div>
+            </div>
+            <div class="field-row">
+              <div class="field-group">
+                <label for="time-hours">Hours</label>
+                <input
+                  type="number"
+                  id="time-hours"
+                  min="0"
+                  step="0.25"
+                  placeholder="0"
+                />
+              </div>
+              <div class="field-group">
+                <label for="time-minutes">Minutes</label>
+                <input
+                  type="number"
+                  id="time-minutes"
+                  min="0"
+                  max="59"
+                  step="1"
+                  placeholder="30"
+                />
+              </div>
+            </div>
+            <div class="field-group">
+              <label for="rate-platform">Compare to platform (optional)</label>
+              <select id="rate-platform">
+                <option value="">General gig work average</option>
+                <option>Uber</option>
+                <option>DoorDash</option>
+                <option>Instacart</option>
+                <option>Prolific</option>
+                <option>MTurk</option>
+              </select>
+            </div>
+            <button id="calc-rate-btn" class="primary-btn full-width">Calculate rate</button>
+            <p class="result" id="rate-result">Hourly rate: —</p>
+            <div id="rate-comparison" class="rate-comparison" style="display: none;">
+              <div class="comparison-header">How you compare</div>
+              <div id="comparison-text" class="comparison-text"></div>
+              <div id="comparison-details" class="comparison-details"></div>
+            </div>
+          </section>
+        </div>
+      </main>
+
+      <main id="timer-page" class="tab-page">
+        <div class="grid">
+          <section class="card" id="timer-card">
+            <h2>Break Timer</h2>
+            <p class="timer-display" id="timer-display">05:00</p>
+            <div class="timer-controls">
+              <button id="timer-start" class="primary-btn">Start</button>
+              <button id="timer-pause">Pause</button>
+              <button id="timer-reset">Reset</button>
+            </div>
+            <div class="field-row compact">
+              <div class="field-group">
+                <label for="timer-minutes">Minutes</label>
+                <input
+                  type="number"
+                  id="timer-minutes"
+                  min="1"
+                  max="60"
+                  step="1"
+                  value="5"
+                />
+              </div>
+            </div>
+            <p class="hint">Set your break length and keep an eye on the clock.</p>
+          </section>
+        </div>
+      </main>
+
+      <footer class="app-footer">
+        <span>Snore : Gig Tracker</span>
+        <span class="dot">•</span>
+        <span>Made for Gig Workers, Hobby Havers, and survey & microtask grinders</span>
+      </footer>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>
+
+

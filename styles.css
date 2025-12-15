@@ -53,6 +53,137 @@ body {
   font-size: 0.95rem;
 }
 
+.tab-nav {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+  padding: 0 16px;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(15, 23, 42, 0.6);
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tab-btn:hover {
+  background: rgba(15, 23, 42, 0.9);
+  color: var(--text-main);
+}
+
+.tab-btn.active {
+  background: linear-gradient(135deg, var(--accent), var(--accent-secondary));
+  color: #f9fafb;
+  border-color: transparent;
+  box-shadow: 0 4px 15px rgba(124, 92, 255, 0.3);
+}
+
+.tab-page {
+  display: none;
+}
+
+.tab-page.active {
+  display: block;
+}
+
+.rate-ticker-wrapper {
+  margin-bottom: 20px;
+}
+
+.rate-ticker-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  gap: 12px;
+}
+
+.rate-ticker-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  flex: 1;
+  text-align: left;
+}
+
+.location-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(15, 23, 42, 0.8);
+  color: var(--text-main);
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  white-space: nowrap;
+}
+
+.location-btn:hover {
+  background: rgba(15, 23, 42, 0.95);
+  border-color: var(--accent);
+}
+
+.location-btn.active {
+  background: rgba(124, 92, 255, 0.15);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.location-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.rate-ticker-container {
+  overflow: hidden;
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 10px;
+  border: 1px solid var(--border-subtle);
+  padding: 8px 0;
+}
+
+.rate-ticker {
+  overflow: hidden;
+  white-space: nowrap;
+  position: relative;
+}
+
+.rate-ticker-content {
+  display: inline-block;
+  animation: scroll-ticker 60s linear infinite;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+
+.ticker-item {
+  display: inline-block;
+  margin: 0 16px;
+  color: var(--accent-secondary);
+  font-weight: 500;
+}
+
+.ticker-item.user-data {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+@keyframes scroll-ticker {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -211,6 +342,45 @@ button:disabled {
   color: var(--danger);
 }
 
+.rate-comparison {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid var(--border-subtle);
+}
+
+.comparison-header {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.comparison-text {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 6px;
+}
+
+.comparison-text.above {
+  color: var(--accent-secondary);
+}
+
+.comparison-text.below {
+  color: var(--danger);
+}
+
+.comparison-text.average {
+  color: var(--accent);
+}
+
+.comparison-details {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
 .hint {
   margin-top: 8px;
   font-size: 0.78rem;
@@ -242,6 +412,58 @@ button:disabled {
   margin: 10px 0 8px;
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+.export-buttons {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.export-buttons button {
+  flex: 1;
+  font-size: 0.85rem;
+  padding: 6px 10px;
+}
+
+.overall-rate-display {
+  text-align: center;
+  margin: 12px 0;
+}
+
+.rate-value {
+  font-size: 2rem;
+  font-weight: 600;
+  color: var(--accent-secondary);
+  margin-bottom: 8px;
+  font-variant-numeric: tabular-nums;
+}
+
+.rate-comparison-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.rate-comparison-badge.above {
+  background: rgba(36, 200, 255, 0.15);
+  color: var(--accent-secondary);
+  border: 1px solid rgba(36, 200, 255, 0.3);
+}
+
+.rate-comparison-badge.below {
+  background: rgba(251, 113, 133, 0.15);
+  color: var(--danger);
+  border: 1px solid rgba(251, 113, 133, 0.3);
+}
+
+.rate-comparison-badge.average {
+  background: rgba(124, 92, 255, 0.15);
+  color: var(--accent);
+  border: 1px solid rgba(124, 92, 255, 0.3);
 }
 
 .gig-summary {
@@ -378,8 +600,15 @@ button:disabled {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  #tasks-card {
+  #gigs-card {
     grid-column: span 2;
+  }
+
+  #timer-page .grid,
+  #calculator-page .grid {
+    grid-template-columns: 1fr;
+    max-width: 500px;
+    margin: 0 auto;
   }
 }
 
