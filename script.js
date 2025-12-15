@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 // Shared location and averages system
 (function setupLocationSystem() {
   const LOCATION_STORAGE_KEY = "snorefest-location-pref";
@@ -75,10 +76,14 @@
 })();
 
 // Earnings & hourly rate calculator with comparison
+=======
+// Earnings & hourly rate calculator
+>>>>>>> Deployment
 (function setupEarningsCalculator() {
   const amountEl = document.getElementById("amount-earned");
   const hoursEl = document.getElementById("time-hours");
   const minutesEl = document.getElementById("time-minutes");
+<<<<<<< HEAD
   const platformEl = document.getElementById("rate-platform");
   const btn = document.getElementById("calc-rate-btn");
   const resultEl = document.getElementById("rate-result");
@@ -92,16 +97,31 @@
     return window.getCurrentAverages ? window.getCurrentAverages() : window.nationalAverages;
   }
 
+=======
+  const btn = document.getElementById("calc-rate-btn");
+  const resultEl = document.getElementById("rate-result");
+
+  if (!amountEl || !hoursEl || !minutesEl || !btn || !resultEl) return;
+
+>>>>>>> Deployment
   function calc() {
     const amount = parseFloat(amountEl.value || "0");
     const hours = parseFloat(hoursEl.value || "0");
     const minutes = parseFloat(minutesEl.value || "0");
+<<<<<<< HEAD
     const selectedPlatform = platformEl ? platformEl.value : "";
 
     if (amount <= 0 || (hours <= 0 && minutes <= 0)) {
       resultEl.textContent = "Enter an amount and time greater than zero.";
       resultEl.classList.add("error");
       comparisonEl.style.display = "none";
+=======
+
+    if (amount <= 0 || (hours <= 0 && minutes <= 0)) {
+      resultEl.textContent = "Hourly rate: —";
+      resultEl.classList.add("error");
+      resultEl.textContent = "Enter an amount and time greater than zero.";
+>>>>>>> Deployment
       return;
     }
 
@@ -109,14 +129,21 @@
     const hourly = amount / totalHours;
 
     if (!isFinite(hourly) || hourly <= 0) {
+<<<<<<< HEAD
       resultEl.textContent = "Something looks off. Double-check your numbers.";
       resultEl.classList.add("error");
       comparisonEl.style.display = "none";
+=======
+      resultEl.textContent = "Hourly rate: —";
+      resultEl.classList.add("error");
+      resultEl.textContent = "Something looks off. Double-check your numbers.";
+>>>>>>> Deployment
       return;
     }
 
     resultEl.classList.remove("error");
     resultEl.textContent = `Hourly rate: $${hourly.toFixed(2)}/hr`;
+<<<<<<< HEAD
 
     // Show comparison
     const platformAverages = getPlatformAverages();
@@ -470,6 +497,11 @@
     // Update periodically to catch any local changes
     setInterval(updateTicker, 2000);
   })();
+=======
+  }
+
+  btn.addEventListener("click", calc);
+>>>>>>> Deployment
 })();
 
 // Break timer
@@ -554,6 +586,7 @@
   syncInitial();
 })();
 
+<<<<<<< HEAD
 // Gig log with localStorage and month/year summaries
 (function setupGigLog() {
   const form = document.getElementById("gig-form");
@@ -571,17 +604,37 @@
     !form ||
     !platformEl ||
     !dateEl ||
+=======
+// Task log with localStorage
+(function setupTaskLog() {
+  const form = document.getElementById("task-form");
+  const nameEl = document.getElementById("task-name");
+  const earningsEl = document.getElementById("task-earnings");
+  const minutesEl = document.getElementById("task-minutes");
+  const listEl = document.getElementById("task-list");
+  const countEl = document.getElementById("task-count");
+  const totalEarnedEl = document.getElementById("task-total-earned");
+
+  if (
+    !form ||
+    !nameEl ||
+>>>>>>> Deployment
     !earningsEl ||
     !minutesEl ||
     !listEl ||
     !countEl ||
+<<<<<<< HEAD
     !totalEarnedEl ||
     !monthSummaryEl ||
     !yearSummaryEl
+=======
+    !totalEarnedEl
+>>>>>>> Deployment
   ) {
     return;
   }
 
+<<<<<<< HEAD
   const STORAGE_KEY = "snorefest-gigs-v1";
   let gigs = [];
 
@@ -594,21 +647,37 @@
   }
 
   function loadGigs() {
+=======
+  const STORAGE_KEY = "microtask-buddy-tasks-v1";
+  let tasks = [];
+
+  function loadTasks() {
+>>>>>>> Deployment
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
+<<<<<<< HEAD
         gigs = parsed;
+=======
+        tasks = parsed;
+>>>>>>> Deployment
       }
     } catch {
       // ignore parse errors
     }
   }
 
+<<<<<<< HEAD
   function saveGigs() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(gigs));
+=======
+  function saveTasks() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+>>>>>>> Deployment
     } catch {
       // ignore quota errors
     }
@@ -620,6 +689,7 @@
     return `$${v.toFixed(2)}`;
   }
 
+<<<<<<< HEAD
   function formatHours(minutes) {
     const hrs = (minutes || 0) / 60;
     if (!isFinite(hrs) || hrs <= 0) return "0 hrs";
@@ -767,32 +837,50 @@
     const count = gigs.length;
     const total = gigs.reduce((sum, g) => sum + (g.earnings || 0), 0);
     countEl.textContent = `${count} gig${count === 1 ? "" : "s"}`;
+=======
+  function updateSummary() {
+    const count = tasks.length;
+    const total = tasks.reduce((sum, t) => sum + (t.earnings || 0), 0);
+    countEl.textContent = `${count} task${count === 1 ? "" : "s"}`;
+>>>>>>> Deployment
     totalEarnedEl.textContent = formatCurrency(total);
   }
 
   function render() {
     listEl.innerHTML = "";
+<<<<<<< HEAD
     gigs.forEach((gig) => {
       const li = document.createElement("li");
       li.className = "task-item";
       li.dataset.id = gig.id;
+=======
+    tasks.forEach((task) => {
+      const li = document.createElement("li");
+      li.className = "task-item";
+      li.dataset.id = task.id;
+>>>>>>> Deployment
 
       const main = document.createElement("div");
       main.className = "task-main";
 
       const nameSpan = document.createElement("div");
       nameSpan.className = "task-name";
+<<<<<<< HEAD
       const platform = gig.platform || "(no platform)";
       const dateLabel = gig.date || "";
       nameSpan.textContent = dateLabel
         ? `${platform} · ${dateLabel}`
         : platform;
+=======
+      nameSpan.textContent = task.name || "(untitled task)";
+>>>>>>> Deployment
 
       const meta = document.createElement("div");
       meta.className = "task-meta";
 
       const earnSpan = document.createElement("span");
       earnSpan.className = "task-earnings";
+<<<<<<< HEAD
       earnSpan.textContent = formatCurrency(gig.earnings || 0);
 
       const minsSpan = document.createElement("span");
@@ -802,6 +890,17 @@
       if (gig.minutes && gig.earnings) {
         const hrs = gig.minutes / 60;
         const rate = gig.earnings / hrs;
+=======
+      earnSpan.textContent = formatCurrency(task.earnings || 0);
+
+      const minsSpan = document.createElement("span");
+      minsSpan.textContent = `${task.minutes || 0} min`;
+
+      const rateSpan = document.createElement("span");
+      if (task.minutes && task.earnings) {
+        const hrs = task.minutes / 60;
+        const rate = task.earnings / hrs;
+>>>>>>> Deployment
         if (isFinite(rate) && rate > 0) {
           rateSpan.textContent = `~$${rate.toFixed(2)}/hr`;
         }
@@ -817,6 +916,7 @@
       const removeBtn = document.createElement("button");
       removeBtn.className = "task-remove";
       removeBtn.type = "button";
+<<<<<<< HEAD
       removeBtn.setAttribute("aria-label", "Remove gig");
       removeBtn.textContent = "×";
 
@@ -830,6 +930,16 @@
         
         // Trigger ticker update
         window.dispatchEvent(new Event("gigsUpdated"));
+=======
+      removeBtn.setAttribute("aria-label", "Remove task");
+      removeBtn.textContent = "×";
+
+      removeBtn.addEventListener("click", () => {
+        tasks = tasks.filter((t) => t.id !== task.id);
+        saveTasks();
+        render();
+        updateSummary();
+>>>>>>> Deployment
       });
 
       li.appendChild(main);
@@ -837,12 +947,17 @@
       listEl.appendChild(li);
     });
 
+<<<<<<< HEAD
     updateTotals();
     updateSummaries();
+=======
+    updateSummary();
+>>>>>>> Deployment
   }
 
   function handleSubmit(event) {
     event.preventDefault();
+<<<<<<< HEAD
     const platform = platformEl.value.trim();
     const date = dateEl.value || todayISO();
     const earnings = parseFloat(earningsEl.value || "0");
@@ -856,10 +971,24 @@
       id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
       platform: platform || "",
       date,
+=======
+    const name = nameEl.value.trim();
+    const earnings = parseFloat(earningsEl.value || "0");
+    const minutes = parseInt(minutesEl.value || "0", 10);
+
+    if (!name && earnings <= 0 && minutes <= 0) {
+      return;
+    }
+
+    const task = {
+      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
+      name: name || "",
+>>>>>>> Deployment
       earnings: isFinite(earnings) && earnings > 0 ? earnings : 0,
       minutes: isFinite(minutes) && minutes > 0 ? minutes : 0,
     };
 
+<<<<<<< HEAD
     gigs.unshift(gig);
     saveGigs();
     render();
@@ -978,4 +1107,19 @@
   });
 })();
 
+=======
+    tasks.unshift(task);
+    saveTasks();
+    render();
+
+    form.reset();
+    nameEl.focus();
+  }
+
+  loadTasks();
+  render();
+  form.addEventListener("submit", handleSubmit);
+})();
+
+>>>>>>> Deployment
 
