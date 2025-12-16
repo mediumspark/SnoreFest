@@ -606,6 +606,14 @@
     }
   }
 
+  function saveGigs() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(gigs));
+    } catch {
+      // ignore quota errors
+    }
+  }
+
   function formatCurrency(amount) {
     const v = typeof amount === "number" ? amount : parseFloat(amount || "0");
     if (!isFinite(v)) return "$0.00";
