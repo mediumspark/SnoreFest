@@ -554,7 +554,6 @@
   syncInitial();
 })();
 
-<<<<<<< HEAD
 // Gig log with localStorage and month/year summaries
 (function setupGigLog() {
   const form = document.getElementById("gig-form");
@@ -572,37 +571,17 @@
     !form ||
     !platformEl ||
     !dateEl ||
-=======
-// Task log with localStorage
-(function setupTaskLog() {
-  const form = document.getElementById("task-form");
-  const nameEl = document.getElementById("task-name");
-  const earningsEl = document.getElementById("task-earnings");
-  const minutesEl = document.getElementById("task-minutes");
-  const listEl = document.getElementById("task-list");
-  const countEl = document.getElementById("task-count");
-  const totalEarnedEl = document.getElementById("task-total-earned");
-
-  if (
-    !form ||
-    !nameEl ||
->>>>>>> Deployment
     !earningsEl ||
     !minutesEl ||
     !listEl ||
     !countEl ||
-<<<<<<< HEAD
     !totalEarnedEl ||
     !monthSummaryEl ||
     !yearSummaryEl
-=======
-    !totalEarnedEl
->>>>>>> Deployment
   ) {
     return;
   }
 
-<<<<<<< HEAD
   const STORAGE_KEY = "snorefest-gigs-v1";
   let gigs = [];
 
@@ -615,39 +594,15 @@
   }
 
   function loadGigs() {
-=======
-  const STORAGE_KEY = "microtask-buddy-tasks-v1";
-  let tasks = [];
-
-  function loadTasks() {
->>>>>>> Deployment
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw);
       if (Array.isArray(parsed)) {
-<<<<<<< HEAD
         gigs = parsed;
-=======
-        tasks = parsed;
->>>>>>> Deployment
       }
     } catch {
       // ignore parse errors
-    }
-  }
-
-<<<<<<< HEAD
-  function saveGigs() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(gigs));
-=======
-  function saveTasks() {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
->>>>>>> Deployment
-    } catch {
-      // ignore quota errors
     }
   }
 
@@ -657,7 +612,6 @@
     return `$${v.toFixed(2)}`;
   }
 
-<<<<<<< HEAD
   function formatHours(minutes) {
     const hrs = (minutes || 0) / 60;
     if (!isFinite(hrs) || hrs <= 0) return "0 hrs";
@@ -805,50 +759,32 @@
     const count = gigs.length;
     const total = gigs.reduce((sum, g) => sum + (g.earnings || 0), 0);
     countEl.textContent = `${count} gig${count === 1 ? "" : "s"}`;
-=======
-  function updateSummary() {
-    const count = tasks.length;
-    const total = tasks.reduce((sum, t) => sum + (t.earnings || 0), 0);
-    countEl.textContent = `${count} task${count === 1 ? "" : "s"}`;
->>>>>>> Deployment
     totalEarnedEl.textContent = formatCurrency(total);
   }
 
   function render() {
     listEl.innerHTML = "";
-<<<<<<< HEAD
     gigs.forEach((gig) => {
       const li = document.createElement("li");
       li.className = "task-item";
       li.dataset.id = gig.id;
-=======
-    tasks.forEach((task) => {
-      const li = document.createElement("li");
-      li.className = "task-item";
-      li.dataset.id = task.id;
->>>>>>> Deployment
 
       const main = document.createElement("div");
       main.className = "task-main";
 
       const nameSpan = document.createElement("div");
       nameSpan.className = "task-name";
-<<<<<<< HEAD
       const platform = gig.platform || "(no platform)";
       const dateLabel = gig.date || "";
       nameSpan.textContent = dateLabel
         ? `${platform} · ${dateLabel}`
         : platform;
-=======
-      nameSpan.textContent = task.name || "(untitled task)";
->>>>>>> Deployment
 
       const meta = document.createElement("div");
       meta.className = "task-meta";
 
       const earnSpan = document.createElement("span");
       earnSpan.className = "task-earnings";
-<<<<<<< HEAD
       earnSpan.textContent = formatCurrency(gig.earnings || 0);
 
       const minsSpan = document.createElement("span");
@@ -858,17 +794,6 @@
       if (gig.minutes && gig.earnings) {
         const hrs = gig.minutes / 60;
         const rate = gig.earnings / hrs;
-=======
-      earnSpan.textContent = formatCurrency(task.earnings || 0);
-
-      const minsSpan = document.createElement("span");
-      minsSpan.textContent = `${task.minutes || 0} min`;
-
-      const rateSpan = document.createElement("span");
-      if (task.minutes && task.earnings) {
-        const hrs = task.minutes / 60;
-        const rate = task.earnings / hrs;
->>>>>>> Deployment
         if (isFinite(rate) && rate > 0) {
           rateSpan.textContent = `~$${rate.toFixed(2)}/hr`;
         }
@@ -884,7 +809,6 @@
       const removeBtn = document.createElement("button");
       removeBtn.className = "task-remove";
       removeBtn.type = "button";
-<<<<<<< HEAD
       removeBtn.setAttribute("aria-label", "Remove gig");
       removeBtn.textContent = "×";
 
@@ -898,16 +822,6 @@
         
         // Trigger ticker update
         window.dispatchEvent(new Event("gigsUpdated"));
-=======
-      removeBtn.setAttribute("aria-label", "Remove task");
-      removeBtn.textContent = "×";
-
-      removeBtn.addEventListener("click", () => {
-        tasks = tasks.filter((t) => t.id !== task.id);
-        saveTasks();
-        render();
-        updateSummary();
->>>>>>> Deployment
       });
 
       li.appendChild(main);
@@ -915,17 +829,12 @@
       listEl.appendChild(li);
     });
 
-<<<<<<< HEAD
     updateTotals();
     updateSummaries();
-=======
-    updateSummary();
->>>>>>> Deployment
   }
 
   function handleSubmit(event) {
     event.preventDefault();
-<<<<<<< HEAD
     const platform = platformEl.value.trim();
     const date = dateEl.value || todayISO();
     const earnings = parseFloat(earningsEl.value || "0");
@@ -939,24 +848,10 @@
       id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
       platform: platform || "",
       date,
-=======
-    const name = nameEl.value.trim();
-    const earnings = parseFloat(earningsEl.value || "0");
-    const minutes = parseInt(minutesEl.value || "0", 10);
-
-    if (!name && earnings <= 0 && minutes <= 0) {
-      return;
-    }
-
-    const task = {
-      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      name: name || "",
->>>>>>> Deployment
       earnings: isFinite(earnings) && earnings > 0 ? earnings : 0,
       minutes: isFinite(minutes) && minutes > 0 ? minutes : 0,
     };
 
-<<<<<<< HEAD
     gigs.unshift(gig);
     saveGigs();
     render();
@@ -1075,19 +970,4 @@
   });
 })();
 
-=======
-    tasks.unshift(task);
-    saveTasks();
-    render();
-
-    form.reset();
-    nameEl.focus();
-  }
-
-  loadTasks();
-  render();
-  form.addEventListener("submit", handleSubmit);
-})();
-
->>>>>>> Deployment
 
