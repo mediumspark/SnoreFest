@@ -1,17 +1,193 @@
-// Shared location and averages system
+// Shared location and averages system with API data fetching
 (function setupLocationSystem() {
   const LOCATION_STORAGE_KEY = "snorefest-location-pref";
   const LOCATION_DATA_KEY = "snorefest-location-data";
+  const AVERAGES_CACHE_KEY = "snorefest-averages-cache";
+  const AVERAGES_CACHE_EXPIRY = 7 * 24 * 60 * 60 * 1000; // 7 days in milliseconds
 
-  // National industry averages
-  const nationalAverages = {
-    "": 18.0, // General gig work average
-    "Uber": 20.0,
-    "DoorDash": 16.0,
-    "Instacart": 17.0,
-    "Prolific": 8.0,
-    "MTurk": 6.0,
-  };
+  // No hardcoded defaults - all data must come from API
+  let fallbackNationalAverages = {};
+
+  // API Configuration
+  // 
+  // To use real data instead of hardcoded averages:
+  // 1. Set API_ENABLED to true
+  // 2. Set API_ENDPOINT to your API URL
+  // 
+  // API should return JSON in this format:
+  // {
+  //   "Uber": 20.5,
+  //   "DoorDash": 16.2,
+  //   "Instacart": 17.1,
+  //   "Prolific": 8.0,
+  //   "MTurk": 6.0,
+  //   "source": "BLS" (optional)
+  // }
+  //
+  // API Options:
+  // - Build your own backend that aggregates data from:
+  //   * Bureau of Labor Statistics (BLS) API
+  //   * Research organizations (Economic Policy Institute, etc.)
+  //   * User-submitted data from your app
+  // - Use a service like RapidAPI that might have gig economy data
+  // - Create a serverless function (AWS Lambda, Vercel, etc.) that fetches and caches data
+  //
+  const API_ENDPOINT = null; // e.g., "https://api.yoursite.com/gig-averages" or "/api/averages"
+  const API_ENABLED = false; // Set to true to enable API fetching
+
+  let nationalAverages = {}; // No defaults - only API data
+  let averagesLoaded = false;
+
+  // Fetch averages from API
+  async function fetchAveragesFromAPI() {
+    if (!API_ENABLED || !API_ENDPOINT) {
+      return null;
+    }
+
+    try {
+      const response = await fetch(API_ENDPOINT, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        // Add cache control
+        cache: "default",
+      });
+
+      if (!response.ok) {
+        throw new Error(`API returned ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      // Expected API response format:
+      // {
+      //   "Uber": 20.5,
+      //   "DoorDash": 16.2,
+      //   "Instacart": 17.1,
+      //   "Prolific": 8.0,
+      //   "MTurk": 6.0,
+      //   "timestamp": 1234567890,
+      //   "source": "BLS" or "aggregated" etc.
+      // }
+
+      if (data && typeof data === "object") {
+        // Validate and clean the data - only include valid API data
+        const cleaned = {};
+        
+        // Calculate general average from all platforms if available
+        const platformValues = Object.entries(data)
+          .filter(([key, value]) => key !== "" && typeof value === "number" && value > 0 && value < 1000)
+          .map(([_, value]) => value);
+        
+        if (platformValues.length > 0) {
+          cleaned[""] = platformValues.reduce((a, b) => a + b, 0) / platformValues.length;
+        }
+        
+        // Only include platforms with valid API data
+        Object.keys(data).forEach((platform) => {
+          if (platform === "" || platform === "timestamp" || platform === "source") return;
+          
+          if (typeof data[platform] === "number" && data[platform] > 0 && data[platform] < 1000) {
+            cleaned[platform] = data[platform];
+          }
+        });
+
+        // Update fallback to use this API data
+        fallbackNationalAverages = { ...cleaned };
+
+        // Cache the data
+        const cacheData = {
+          averages: cleaned,
+          timestamp: Date.now(),
+          source: data.source || "API",
+        };
+        try {
+          localStorage.setItem(AVERAGES_CACHE_KEY, JSON.stringify(cacheData));
+        } catch {
+          // Ignore cache errors
+        }
+
+        return cleaned;
+      }
+    } catch (error) {
+      console.warn("Failed to fetch averages from API:", error);
+      return null;
+    }
+
+    return null;
+  }
+
+  // Load averages from cache
+  function loadAveragesFromCache() {
+    try {
+      const cached = localStorage.getItem(AVERAGES_CACHE_KEY);
+      if (!cached) return null;
+
+      const cacheData = JSON.parse(cached);
+      const age = Date.now() - cacheData.timestamp;
+
+      // Use cache if less than expiry time
+      if (age < AVERAGES_CACHE_EXPIRY && cacheData.averages) {
+        // Update fallback to use cached API data
+        fallbackNationalAverages = { ...cacheData.averages };
+        return cacheData.averages;
+      } else if (cacheData.averages) {
+        // Even if expired, use as fallback (better than hardcoded defaults)
+        fallbackNationalAverages = { ...cacheData.averages };
+      }
+    } catch {
+      // Ignore cache errors
+    }
+    return null;
+  }
+
+  // Initialize averages (try API, then cache - no defaults)
+  async function initializeAverages() {
+    if (averagesLoaded) return;
+
+    // Try cache first (fastest)
+    const cached = loadAveragesFromCache();
+    if (cached && Object.keys(cached).length > 0) {
+      nationalAverages = cached;
+      averagesLoaded = true;
+    }
+
+    // Try API (async, updates when ready)
+    if (API_ENABLED) {
+      const apiData = await fetchAveragesFromAPI();
+      if (apiData && Object.keys(apiData).length > 0) {
+        nationalAverages = apiData;
+        averagesLoaded = true;
+        // Trigger update event for components that use averages
+        window.dispatchEvent(new CustomEvent("averagesUpdated"));
+      } else if (!averagesLoaded) {
+        // API failed and no cache - set empty to trigger maintenance message
+        nationalAverages = {};
+        averagesLoaded = true;
+        window.dispatchEvent(new CustomEvent("averagesUpdated"));
+      }
+    } else if (!averagesLoaded) {
+      // API not enabled and no cache - set empty
+      nationalAverages = {};
+      averagesLoaded = true;
+    }
+  }
+
+  // Initialize on load
+  initializeAverages();
+
+  // Also try to refresh periodically (every 24 hours)
+  if (API_ENABLED) {
+    setInterval(() => {
+      fetchAveragesFromAPI().then((data) => {
+        if (data) {
+          nationalAverages = data;
+          window.dispatchEvent(new CustomEvent("averagesUpdated"));
+        }
+      });
+    }, 24 * 60 * 60 * 1000); // 24 hours
+  }
 
   // Metro multipliers (same as in ticker)
   const metroMultipliers = {
@@ -153,19 +329,36 @@
     const locationBtn = document.getElementById("location-toggle-btn");
     if (!tickerContentEl || !tickerLabelEl || !locationBtn) return;
 
-    // Extended national averages for ticker (includes more platforms)
-    const tickerNationalAverages = {
-      "Uber": 20.0,
-      "DoorDash": 16.0,
-      "Instacart": 17.0,
-      "Prolific": 8.0,
-      "MTurk": 6.0,
-      "Grubhub": 18.0,
-      "Uber Eats": 15.0,
-      "Postmates": 16.0,
-      "Shipt": 17.0,
-      "TaskRabbit": 19.0,
-    };
+    // Ticker platforms that should be displayed (in order)
+    // Only platforms with API data will be shown
+    const tickerPlatformOrder = [
+      "Uber",
+      "DoorDash",
+      "Instacart",
+      "Prolific",
+      "MTurk",
+      "Grubhub",
+      "Uber Eats",
+      "Postmates",
+      "Shipt",
+      "TaskRabbit",
+    ];
+
+    function getTickerNationalAverages() {
+      // Get base averages from shared system (from API or cache)
+      const baseAverages = window.getNationalAverages ? window.getNationalAverages() : {};
+      
+      // Only include platforms that have data from API
+      // No static fallbacks - if API doesn't have it, don't show it
+      const tickerAverages = {};
+      tickerPlatformOrder.forEach((platform) => {
+        if (baseAverages[platform] && typeof baseAverages[platform] === "number" && baseAverages[platform] > 0) {
+          tickerAverages[platform] = baseAverages[platform];
+        }
+      });
+      
+      return tickerAverages;
+    }
 
     // Local metro area multipliers (example - would come from API in production)
     // These adjust national averages based on cost of living/demand in metro areas
@@ -246,6 +439,8 @@
     }
 
     function getTickerAverages() {
+      const tickerNationalAverages = getTickerNationalAverages();
+      
       if (!useLocation || !metroTier) {
         return tickerNationalAverages;
       }
@@ -360,9 +555,6 @@
     locationBtn.addEventListener("click", toggleLocation);
     loadLocationPreference();
 
-    // Industry fallback averages (will be replaced by getCurrentAverages)
-    let industryAverages = nationalAverages;
-
     function calculateUserRates() {
       const STORAGE_KEY = "snorefest-gigs-v1";
       let gigs = [];
@@ -379,7 +571,7 @@
         // ignore parse errors
       }
 
-      // Calculate average rate per platform
+      // Calculate average rate per platform from user's gigs
       const platformData = {};
       
       gigs.forEach((gig) => {
@@ -398,24 +590,40 @@
         }
       });
 
-      // Build ticker items - use user's rates if available, otherwise industry average
+      // Get API-based industry averages (no static fallbacks)
+      const industryAverages = getTickerAverages();
+
+      // Build ticker items - prioritize user's rates, fallback to API data only
+      // Only show platforms that have either user data OR API data (no static fallbacks)
       const tickerItems = [];
-      const platforms = Object.keys(industryAverages);
+      const allPlatforms = new Set([
+        ...Object.keys(platformData),
+        ...Object.keys(industryAverages).filter(p => industryAverages[p] > 0)
+      ]);
       
-      platforms.forEach((platform) => {
+      allPlatforms.forEach((platform) => {
         let rate;
+        let isUserData = false;
+        
         if (platformData[platform] && platformData[platform].totalMinutes > 0) {
+          // Use user's actual rate if available
           const hours = platformData[platform].totalMinutes / 60;
           rate = platformData[platform].totalEarnings / hours;
-        } else {
+          isUserData = true;
+        } else if (industryAverages[platform] && industryAverages[platform] > 0) {
+          // Use API data if available (no static fallback)
           rate = industryAverages[platform];
+          isUserData = false;
+        } else {
+          // Skip platforms with no data
+          return;
         }
         
         if (isFinite(rate) && rate > 0) {
           tickerItems.push({
             name: platform,
             rate: rate,
-            isUserData: !!platformData[platform]
+            isUserData: isUserData
           });
         }
       });
@@ -424,16 +632,13 @@
     }
 
     function updateTicker() {
-      industryAverages = getTickerAverages(); // Update to use local/national averages
       const items = calculateUserRates();
+      
+      // Only render if we have items to show
+      // If no API data and no user data, show maintenance message
       if (items.length === 0) {
-        // Fallback to industry averages if no data
-        const fallbackItems = Object.keys(industryAverages).map(name => ({
-          name,
-          rate: industryAverages[name],
-          isUserData: false
-        }));
-        items.push(...fallbackItems);
+        tickerContentEl.innerHTML = '<span class="ticker-item maintenance">Rate averages temporarily unavailable - maintenance in progress</span>';
+        return;
       }
 
       const tickerHTML = items.map(
@@ -463,6 +668,9 @@
     
     // Update when location changes
     window.addEventListener("locationUpdated", updateTicker);
+    
+    // Update when averages are refreshed from API
+    window.addEventListener("averagesUpdated", updateTicker);
     
     // Also update on storage changes (cross-tab)
     window.addEventListener("storage", updateTicker);

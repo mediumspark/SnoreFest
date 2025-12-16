@@ -175,6 +175,11 @@ body {
   font-weight: 600;
 }
 
+.ticker-item.maintenance {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
 @keyframes scroll-ticker {
   0% {
     transform: translateX(0);
