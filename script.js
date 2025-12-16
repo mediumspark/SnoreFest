@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 // Shared location and averages system
 (function setupLocationSystem() {
   const LOCATION_STORAGE_KEY = "snorefest-location-pref";
@@ -76,14 +75,10 @@
 })();
 
 // Earnings & hourly rate calculator with comparison
-=======
-// Earnings & hourly rate calculator
->>>>>>> Deployment
 (function setupEarningsCalculator() {
   const amountEl = document.getElementById("amount-earned");
   const hoursEl = document.getElementById("time-hours");
   const minutesEl = document.getElementById("time-minutes");
-<<<<<<< HEAD
   const platformEl = document.getElementById("rate-platform");
   const btn = document.getElementById("calc-rate-btn");
   const resultEl = document.getElementById("rate-result");
@@ -97,31 +92,16 @@
     return window.getCurrentAverages ? window.getCurrentAverages() : window.nationalAverages;
   }
 
-=======
-  const btn = document.getElementById("calc-rate-btn");
-  const resultEl = document.getElementById("rate-result");
-
-  if (!amountEl || !hoursEl || !minutesEl || !btn || !resultEl) return;
-
->>>>>>> Deployment
   function calc() {
     const amount = parseFloat(amountEl.value || "0");
     const hours = parseFloat(hoursEl.value || "0");
     const minutes = parseFloat(minutesEl.value || "0");
-<<<<<<< HEAD
     const selectedPlatform = platformEl ? platformEl.value : "";
 
     if (amount <= 0 || (hours <= 0 && minutes <= 0)) {
       resultEl.textContent = "Enter an amount and time greater than zero.";
       resultEl.classList.add("error");
       comparisonEl.style.display = "none";
-=======
-
-    if (amount <= 0 || (hours <= 0 && minutes <= 0)) {
-      resultEl.textContent = "Hourly rate: —";
-      resultEl.classList.add("error");
-      resultEl.textContent = "Enter an amount and time greater than zero.";
->>>>>>> Deployment
       return;
     }
 
@@ -129,21 +109,14 @@
     const hourly = amount / totalHours;
 
     if (!isFinite(hourly) || hourly <= 0) {
-<<<<<<< HEAD
       resultEl.textContent = "Something looks off. Double-check your numbers.";
       resultEl.classList.add("error");
       comparisonEl.style.display = "none";
-=======
-      resultEl.textContent = "Hourly rate: —";
-      resultEl.classList.add("error");
-      resultEl.textContent = "Something looks off. Double-check your numbers.";
->>>>>>> Deployment
       return;
     }
 
     resultEl.classList.remove("error");
     resultEl.textContent = `Hourly rate: $${hourly.toFixed(2)}/hr`;
-<<<<<<< HEAD
 
     // Show comparison
     const platformAverages = getPlatformAverages();
@@ -497,11 +470,6 @@
     // Update periodically to catch any local changes
     setInterval(updateTicker, 2000);
   })();
-=======
-  }
-
-  btn.addEventListener("click", calc);
->>>>>>> Deployment
 })();
 
 // Break timer
