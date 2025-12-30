@@ -991,9 +991,10 @@
       const items = calculateUserRates();
       
       // Only render if we have items to show
-      // If no API data and no user data, show maintenance message
+      // If no API data and no user data, encourage submissions
       if (items.length === 0) {
-        tickerContentEl.innerHTML = '<span class="ticker-item maintenance">Not enough data to show, help us out by submitting your earnings anonymously!</span>';
+        const submitLink = '<a href="#" class="ticker-submit-link" onclick="event.preventDefault(); const btn = document.querySelector(\'[data-tab=\\\'submit\\\']\'); if(btn) btn.click(); return false;">submit your data anonymously</a>';
+        tickerContentEl.innerHTML = `<span class="ticker-item maintenance">📊 Help build accurate industry averages - ${submitLink} • Your contributions help all gig workers • 100% anonymous & secure • No personal info required</span>`;
         return;
       }
 
