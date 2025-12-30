@@ -993,7 +993,7 @@
       // Only render if we have items to show
       // If no API data and no user data, show maintenance message
       if (items.length === 0) {
-        tickerContentEl.innerHTML = '<span class="ticker-item maintenance">Rate averages temporarily unavailable - maintenance in progress</span>';
+        tickerContentEl.innerHTML = '<span class="ticker-item maintenance">Not enough data to show, help us out by submitting your earnings anonymously!</span>';
         return;
       }
 

@@ -124,3 +124,4 @@ Once set up:
 3. The ticker will show real-time averages from your database
 4. All data is anonymous and aggregated
 
+

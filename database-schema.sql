@@ -129,3 +129,4 @@ HAVING COUNT(*) >= 5;
 -- Grant access to the view
 GRANT SELECT ON public.platform_averages TO anon, authenticated;
 
+
