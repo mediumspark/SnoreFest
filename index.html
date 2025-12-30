@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Snore : Gig Tracker</title>
     <link rel="stylesheet" href="styles.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   </head>
   <body>
     <div class="app-shell">
@@ -17,6 +18,8 @@
         <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
         <button class="tab-btn" data-tab="calculator">Rate Calculator</button>
         <button class="tab-btn" data-tab="timer">Break Timer</button>
+        <button class="tab-btn" data-tab="submit">Contribute</button>
+        <button class="tab-btn" id="auth-tab-btn" data-tab="auth" style="display: none;">Account</button>
       </nav>
 
       <main id="dashboard-page" class="tab-page active">
@@ -238,6 +241,137 @@
         </div>
       </main>
 
+      <main id="submit-page" class="tab-page">
+        <div class="grid">
+          <section class="card" id="submit-card">
+            <h2>Contribute to Average Rates</h2>
+            <p class="hint">Help improve accuracy by sharing your monthly dashboard data. All submissions are anonymous.</p>
+            
+            <div id="submit-login-prompt" style="display: none;">
+              <p class="hint">Please sign in to contribute data.</p>
+              <button class="primary-btn" id="submit-signin-btn">Sign In</button>
+            </div>
+
+            <form id="submit-form" autocomplete="off" style="display: none;">
+              <div class="field-group">
+                <label for="submit-month">Month</label>
+                <input type="month" id="submit-month" required />
+              </div>
+              
+              <div class="field-group">
+                <label for="submit-platform">Platform</label>
+                <select id="submit-platform" required>
+                  <option value="">Select platform</option>
+                  <option>Uber</option>
+                  <option>DoorDash</option>
+                  <option>Instacart</option>
+                  <option>Prolific</option>
+                  <option>MTurk</option>
+                </select>
+              </div>
+
+              <div class="field-row">
+                <div class="field-group">
+                  <label for="submit-earnings">Total Earnings ($)</label>
+                  <input
+                    type="number"
+                    id="submit-earnings"
+                    min="0"
+                    step="0.01"
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+                <div class="field-group">
+                  <label for="submit-minutes">Total Minutes</label>
+                  <input
+                    type="number"
+                    id="submit-minutes"
+                    min="1"
+                    step="1"
+                    placeholder="0"
+                    required
+                  />
+                </div>
+              </div>
+
+              <button type="submit" class="primary-btn full-width">Submit Data</button>
+              <p id="submit-status" class="hint" style="margin-top: 8px;"></p>
+            </form>
+          </section>
+        </div>
+      </main>
+
+      <main id="auth-page" class="tab-page">
+        <div class="grid">
+          <section class="card" id="auth-card">
+            <h2 id="auth-title">Sign In</h2>
+            
+            <div id="auth-signin" class="auth-form">
+              <form id="signin-form" autocomplete="off">
+                <div class="field-group">
+                  <label for="signin-email">Email</label>
+                  <input type="email" id="signin-email" required />
+                </div>
+                <div class="field-group">
+                  <label for="signin-password">Password</label>
+                  <input type="password" id="signin-password" required />
+                </div>
+                <button type="submit" class="primary-btn full-width">Sign In</button>
+                <p class="hint" style="text-align: center; margin-top: 8px;">
+                  <a href="#" id="forgot-password-link">Forgot password?</a>
+                </p>
+                <p class="hint" style="text-align: center; margin-top: 8px;">
+                  Don't have an account? <a href="#" id="show-signup-link">Sign up</a>
+                </p>
+                <p id="auth-status" class="hint" style="margin-top: 8px;"></p>
+              </form>
+            </div>
+
+            <div id="auth-signup" class="auth-form" style="display: none;">
+              <form id="signup-form" autocomplete="off">
+                <div class="field-group">
+                  <label for="signup-email">Email</label>
+                  <input type="email" id="signup-email" required />
+                </div>
+                <div class="field-group">
+                  <label for="signup-password">Password</label>
+                  <input type="password" id="signup-password" minlength="6" required />
+                </div>
+                <div class="field-group">
+                  <label for="signup-confirm">Confirm Password</label>
+                  <input type="password" id="signup-confirm" required />
+                </div>
+                <button type="submit" class="primary-btn full-width">Sign Up</button>
+                <p class="hint" style="text-align: center; margin-top: 8px;">
+                  Already have an account? <a href="#" id="show-signin-link">Sign in</a>
+                </p>
+                <p id="signup-status" class="hint" style="margin-top: 8px;"></p>
+              </form>
+            </div>
+
+            <div id="auth-reset" class="auth-form" style="display: none;">
+              <form id="reset-form" autocomplete="off">
+                <div class="field-group">
+                  <label for="reset-email">Email</label>
+                  <input type="email" id="reset-email" required />
+                </div>
+                <button type="submit" class="primary-btn full-width">Send Reset Link</button>
+                <p class="hint" style="text-align: center; margin-top: 8px;">
+                  <a href="#" id="back-to-signin-link">Back to sign in</a>
+                </p>
+                <p id="reset-status" class="hint" style="margin-top: 8px;"></p>
+              </form>
+            </div>
+
+            <div id="auth-user-info" style="display: none;">
+              <p class="hint">Signed in as: <span id="user-email"></span></p>
+              <button id="signout-btn" class="primary-btn full-width">Sign Out</button>
+            </div>
+          </section>
+        </div>
+      </main>
+
       <footer class="app-footer">
         <span>Snore : Gig Tracker</span>
         <span class="dot">•</span>
@@ -245,6 +379,7 @@
       </footer>
     </div>
 
+    <script src="supabase-config.js"></script>
     <script src="script.js"></script>
   </body>
 </html>

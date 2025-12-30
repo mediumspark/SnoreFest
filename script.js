@@ -1,3 +1,342 @@
+// Supabase Authentication and Data Submission
+(function setupSupabaseAuth() {
+  // Get Supabase client from global scope
+  const supabase = window.supabaseClient;
+  
+  if (!supabase) {
+    console.error('Supabase client not initialized. Please configure supabase-config.js');
+    return;
+  }
+
+  // Check if user is signed in
+  async function checkAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
+    return session;
+  }
+
+  // Update UI based on auth state
+  async function updateAuthUI() {
+    const session = await checkAuth();
+    const authTabBtn = document.getElementById("auth-tab-btn");
+    const submitLoginPrompt = document.getElementById("submit-login-prompt");
+    const submitForm = document.getElementById("submit-form");
+    const authUserInfo = document.getElementById("auth-user-info");
+    const authSignin = document.getElementById("auth-signin");
+    const userEmailEl = document.getElementById("user-email");
+
+    if (session) {
+      // User is signed in
+      if (authTabBtn) authTabBtn.style.display = "inline-block";
+      if (submitLoginPrompt) submitLoginPrompt.style.display = "none";
+      if (submitForm) submitForm.style.display = "block";
+      if (authUserInfo) authUserInfo.style.display = "block";
+      if (authSignin) authSignin.style.display = "none";
+      if (userEmailEl) userEmailEl.textContent = session.user.email;
+    } else {
+      // User is not signed in
+      if (authTabBtn) authTabBtn.style.display = "none";
+      if (submitLoginPrompt) submitLoginPrompt.style.display = "block";
+      if (submitForm) submitForm.style.display = "none";
+      if (authUserInfo) authUserInfo.style.display = "none";
+      if (authSignin) authSignin.style.display = "block";
+    }
+  }
+
+  // Sign in
+  async function signIn(email, password) {
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    await updateAuthUI();
+    return { success: true, data };
+  }
+
+  // Sign up
+  async function signUp(email, password) {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, message: "Check your email to confirm your account!" };
+  }
+
+  // Sign out
+  async function signOut() {
+    const { error } = await supabase.auth.signOut();
+    if (!error) {
+      await updateAuthUI();
+    }
+    return { success: !error, error };
+  }
+
+  // Password reset
+  async function resetPassword(email) {
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, message: "Check your email for the reset link!" };
+  }
+
+  // Submit dashboard data
+  async function submitData(month, platform, earnings, minutes) {
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      return { success: false, error: "You must be signed in to submit data" };
+    }
+
+    // Format month as first day of month
+    const monthDate = new Date(month + "-01");
+    
+    const supabase = window.supabaseClient;
+    if (!supabase) {
+      return { success: false, error: "Supabase not configured" };
+    }
+
+    const { data, error } = await supabase
+      .from("submissions")
+      .insert([
+        {
+          user_id: session.user.id,
+          month: monthDate.toISOString().split("T")[0],
+          platform: platform,
+          total_earnings: parseFloat(earnings),
+          total_minutes: parseInt(minutes),
+        },
+      ])
+      .select();
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+
+    return { success: true, data };
+  }
+
+  // Setup form handlers
+  function setupAuthForms() {
+    // Sign in form
+    const signinForm = document.getElementById("signin-form");
+    if (signinForm) {
+      signinForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const statusEl = document.getElementById("auth-status");
+        const email = document.getElementById("signin-email").value;
+        const password = document.getElementById("signin-password").value;
+
+        statusEl.textContent = "Signing in...";
+        const result = await signIn(email, password);
+
+        if (result.success) {
+          statusEl.textContent = "Signed in successfully!";
+          statusEl.style.color = "var(--accent-secondary)";
+          setTimeout(() => {
+            document.querySelector('[data-tab="dashboard"]').click();
+            statusEl.textContent = "";
+          }, 1500);
+        } else {
+          statusEl.textContent = result.error;
+          statusEl.style.color = "var(--danger)";
+        }
+      });
+    }
+
+    // Sign up form
+    const signupForm = document.getElementById("signup-form");
+    if (signupForm) {
+      signupForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const statusEl = document.getElementById("signup-status");
+        const email = document.getElementById("signup-email").value;
+        const password = document.getElementById("signup-password").value;
+        const confirm = document.getElementById("signup-confirm").value;
+
+        if (password !== confirm) {
+          statusEl.textContent = "Passwords do not match";
+          statusEl.style.color = "var(--danger)";
+          return;
+        }
+
+        if (password.length < 6) {
+          statusEl.textContent = "Password must be at least 6 characters";
+          statusEl.style.color = "var(--danger)";
+          return;
+        }
+
+        statusEl.textContent = "Creating account...";
+        const result = await signUp(email, password);
+
+        if (result.success) {
+          statusEl.textContent = result.message;
+          statusEl.style.color = "var(--accent-secondary)";
+        } else {
+          statusEl.textContent = result.error;
+          statusEl.style.color = "var(--danger)";
+        }
+      });
+    }
+
+    // Reset password form
+    const resetForm = document.getElementById("reset-form");
+    if (resetForm) {
+      resetForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const statusEl = document.getElementById("reset-status");
+        const email = document.getElementById("reset-email").value;
+
+        statusEl.textContent = "Sending reset link...";
+        const result = await resetPassword(email);
+
+        if (result.success) {
+          statusEl.textContent = result.message;
+          statusEl.style.color = "var(--accent-secondary)";
+        } else {
+          statusEl.textContent = result.error;
+          statusEl.style.color = "var(--danger)";
+        }
+      });
+    }
+
+    // Sign out button
+    const signoutBtn = document.getElementById("signout-btn");
+    if (signoutBtn) {
+      signoutBtn.addEventListener("click", async () => {
+        await signOut();
+        document.querySelector('[data-tab="dashboard"]').click();
+      });
+    }
+
+    // Navigation links
+    const showSignupLink = document.getElementById("show-signup-link");
+    const showSigninLink = document.getElementById("show-signin-link");
+    const forgotPasswordLink = document.getElementById("forgot-password-link");
+    const backToSigninLink = document.getElementById("back-to-signin-link");
+    const authSignin = document.getElementById("auth-signin");
+    const authSignup = document.getElementById("auth-signup");
+    const authReset = document.getElementById("auth-reset");
+    const authTitle = document.getElementById("auth-title");
+
+    if (showSignupLink) {
+      showSignupLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (authSignin) authSignin.style.display = "none";
+        if (authSignup) authSignup.style.display = "block";
+        if (authReset) authReset.style.display = "none";
+        if (authTitle) authTitle.textContent = "Sign Up";
+      });
+    }
+
+    if (showSigninLink) {
+      showSigninLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (authSignin) authSignin.style.display = "block";
+        if (authSignup) authSignup.style.display = "none";
+        if (authReset) authReset.style.display = "none";
+        if (authTitle) authTitle.textContent = "Sign In";
+      });
+    }
+
+    if (forgotPasswordLink) {
+      forgotPasswordLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (authSignin) authSignin.style.display = "none";
+        if (authSignup) authSignup.style.display = "none";
+        if (authReset) authReset.style.display = "block";
+        if (authTitle) authTitle.textContent = "Reset Password";
+      });
+    }
+
+    if (backToSigninLink) {
+      backToSigninLink.addEventListener("click", (e) => {
+        e.preventDefault();
+        if (authSignin) authSignin.style.display = "block";
+        if (authSignup) authSignup.style.display = "none";
+        if (authReset) authReset.style.display = "none";
+        if (authTitle) authTitle.textContent = "Sign In";
+      });
+    }
+  }
+
+  // Setup submission form
+  function setupSubmissionForm() {
+    const submitForm = document.getElementById("submit-form");
+    const submitSigninBtn = document.getElementById("submit-signin-btn");
+    
+    if (submitSigninBtn) {
+      submitSigninBtn.addEventListener("click", () => {
+        const authTab = document.querySelector('[data-tab="auth"]');
+        if (authTab) authTab.click();
+      });
+    }
+    if (submitForm) {
+      // Set default month to current month
+      const now = new Date();
+      const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+      const monthInput = document.getElementById("submit-month");
+      if (monthInput) monthInput.value = currentMonth;
+
+      submitForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const statusEl = document.getElementById("submit-status");
+        const month = document.getElementById("submit-month").value;
+        const platform = document.getElementById("submit-platform").value;
+        const earnings = document.getElementById("submit-earnings").value;
+        const minutes = document.getElementById("submit-minutes").value;
+
+        if (!month || !platform || !earnings || !minutes) {
+          statusEl.textContent = "Please fill in all fields";
+          statusEl.style.color = "var(--danger)";
+          return;
+        }
+
+        statusEl.textContent = "Submitting...";
+        statusEl.style.color = "var(--text-muted)";
+
+        const result = await submitData(month, platform, earnings, minutes);
+
+        if (result.success) {
+          statusEl.textContent = "✓ Data submitted successfully! Thank you for contributing.";
+          statusEl.style.color = "var(--accent-secondary)";
+          submitForm.reset();
+          // Reset month to current
+          if (monthInput) monthInput.value = currentMonth;
+        } else {
+          statusEl.textContent = result.error;
+          statusEl.style.color = "var(--danger)";
+        }
+      });
+    }
+  }
+
+  // Listen for auth state changes
+  if (supabase) {
+    supabase.auth.onAuthStateChange((event, session) => {
+      updateAuthUI();
+    });
+  }
+
+  // Initialize
+  setupAuthForms();
+  setupSubmissionForm();
+  updateAuthUI();
+})();
+
 // Shared location and averages system with API data fetching
 (function setupLocationSystem() {
   const LOCATION_STORAGE_KEY = "snorefest-location-pref";
@@ -10,55 +349,71 @@
 
   // API Configuration
   // 
-  // To use real data instead of hardcoded averages:
-  // 1. Set API_ENABLED to true
-  // 2. Set API_ENDPOINT to your API URL
-  // 
-  // API should return JSON in this format:
-  // {
-  //   "Uber": 20.5,
-  //   "DoorDash": 16.2,
-  //   "Instacart": 17.1,
-  //   "Prolific": 8.0,
-  //   "MTurk": 6.0,
-  //   "source": "BLS" (optional)
-  // }
-  //
-  // API Options:
-  // - Build your own backend that aggregates data from:
-  //   * Bureau of Labor Statistics (BLS) API
-  //   * Research organizations (Economic Policy Institute, etc.)
-  //   * User-submitted data from your app
-  // - Use a service like RapidAPI that might have gig economy data
-  // - Create a serverless function (AWS Lambda, Vercel, etc.) that fetches and caches data
+  // By default, uses Supabase to fetch averages from user submissions
+  // If you want to use a custom API endpoint instead, set API_ENABLED to true
+  // and provide API_ENDPOINT
   //
   const API_ENDPOINT = null; // e.g., "https://api.yoursite.com/gig-averages" or "/api/averages"
-  const API_ENABLED = false; // Set to true to enable API fetching
+  const API_ENABLED = true; // Set to true to enable API fetching (uses Supabase by default)
 
   let nationalAverages = {}; // No defaults - only API data
   let averagesLoaded = false;
 
-  // Fetch averages from API
+  // Fetch averages from Supabase
   async function fetchAveragesFromAPI() {
-    if (!API_ENABLED || !API_ENDPOINT) {
-      return null;
+    if (API_ENABLED) {
+      // Try Supabase first (default API)
+      try {
+        const supabase = window.supabaseClient;
+        if (!supabase) {
+          return null;
+        }
+
+        const { data, error } = await supabase
+          .from("platform_averages")
+          .select("platform, avg_hourly_rate");
+
+        if (error) {
+          console.warn("Failed to fetch averages from Supabase:", error);
+          return null;
+        }
+
+        if (data && data.length > 0) {
+          const averages = {};
+          data.forEach((row) => {
+            averages[row.platform] = parseFloat(row.avg_hourly_rate);
+          });
+          
+          // Calculate general average
+          const values = Object.values(averages).filter(v => v > 0);
+          if (values.length > 0) {
+            averages[""] = values.reduce((a, b) => a + b, 0) / values.length;
+          }
+
+          return averages;
+        }
+      } catch (error) {
+        console.warn("Failed to fetch averages from Supabase:", error);
+        return null;
+      }
     }
 
-    try {
-      const response = await fetch(API_ENDPOINT, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        // Add cache control
-        cache: "default",
-      });
+    // Fallback to custom API endpoint if configured
+    if (API_ENDPOINT) {
+      try {
+        const response = await fetch(API_ENDPOINT, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          cache: "default",
+        });
 
-      if (!response.ok) {
-        throw new Error(`API returned ${response.status}`);
-      }
+        if (!response.ok) {
+          throw new Error(`API returned ${response.status}`);
+        }
 
-      const data = await response.json();
+        const data = await response.json();
       
       // Expected API response format:
       // {
@@ -110,9 +465,10 @@
 
         return cleaned;
       }
-    } catch (error) {
-      console.warn("Failed to fetch averages from API:", error);
-      return null;
+      } catch (error) {
+        console.warn("Failed to fetch averages from API:", error);
+        return null;
+      }
     }
 
     return null;

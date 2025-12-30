@@ -180,6 +180,20 @@ body {
   font-style: italic;
 }
 
+.auth-form {
+  margin-top: 12px;
+}
+
+.auth-form a {
+  color: var(--accent-secondary);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.auth-form a:hover {
+  text-decoration: underline;
+}
+
 @keyframes scroll-ticker {
   0% {
     transform: translateX(0);
